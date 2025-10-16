@@ -23,8 +23,8 @@ const nextConfig = {
   async headers() {
     return [
       {
-        // 위젯 임베드 경로 (쿼리 파라미터 포함 모든 경로)
-        source: '/widget/:path*',
+        // 위젯 임베드 경로 (쿼리 파라미터 포함)
+        source: '/widget',
         headers: [
           {
             key: 'X-Frame-Options',
