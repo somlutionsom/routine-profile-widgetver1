@@ -199,7 +199,7 @@ function WidgetContent() {
   return (
     <div style={{ 
       minHeight: '100vh', 
-      backgroundColor: theme.bg, 
+      backgroundColor: 'transparent', 
       display: 'flex', 
       alignItems: 'flex-start',  // 모바일 WebView 호환성: center → flex-start
       justifyContent: 'center',
@@ -216,6 +216,8 @@ function WidgetContent() {
           backgroundRepeat: 'no-repeat',
           backgroundPosition: 'center',
           backgroundColor: 'transparent',
+          border: `2px solid ${theme.bg}`,
+          borderRadius: '8px',
         }}
       >
       <div className="widget-inner">
