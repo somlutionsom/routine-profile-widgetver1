@@ -93,7 +93,11 @@ function WidgetContent() {
       } catch (err: any) {
         console.error('Config decrypt error:', err)
         setError('설정을 불러올 수 없습니다')
+        setLoading(false)
       }
+    } else {
+      setError('위젯 URL이 올바르지 않습니다')
+      setLoading(false)
     }
   }, [searchParams])
 
@@ -248,13 +252,17 @@ function WidgetContent() {
           <div className="loading-state">
             <div className="animate-pulse">
               <div className="text-4xl">⏳</div>
+              <p style={{ color: theme.text, marginTop: '8px', fontSize: '14px' }}>데이터 로딩 중...</p>
             </div>
           </div>
         ) : error ? (
           <div className="error-state">
             <div>
-              <div className="text-4xl">😢</div>
-              <p className="text-sm" style={{ color: theme.text }}>{error}</p>
+              <div className="text-4xl">⚠️</div>
+              <p className="text-sm" style={{ color: theme.text, marginTop: '8px' }}>{error}</p>
+              <p style={{ color: theme.text, marginTop: '4px', fontSize: '10px' }}>
+                모바일 앱에서 이 메시지가 보인다면 설정을 확인해주세요
+              </p>
             </div>
           </div>
         ) : data ? (
@@ -423,7 +431,18 @@ function WidgetContent() {
 
 export default function WidgetPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={
+      <div style={{ 
+        minHeight: '100vh', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        backgroundColor: '#FFCEE4',
+        fontSize: '24px'
+      }}>
+        ⏳ 위젯 로딩 중...
+      </div>
+    }>
       <WidgetContent />
     </Suspense>
   )

@@ -3,7 +3,8 @@
    ======================================== */
 .widget-container {
   width: 350px;        /* 🎯 전체 너비 */
-  height: 450px;       /* 🎯 전체 높이 */
+  min-height: 450px;   /* 🎯 최소 높이 (모바일 WebView 호환성) */
+  height: auto;        /* 🎯 컨텐츠에 맞게 자동 조절 */
   cursor: pointer;
   overflow: visible;   /* 🎯 window 배경 라운드 보이게 */
   position: relative;
