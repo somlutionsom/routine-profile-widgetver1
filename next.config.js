@@ -40,6 +40,24 @@ const nextConfig = {
           }
         ],
       },
+      {
+        // 정적 테스트 페이지도 임베드 허용
+        source: '/widget-test',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'ALLOWALL',
+          },
+          {
+            key: 'Content-Security-Policy',
+            value: "frame-ancestors *;"
+          },
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*',
+          }
+        ],
+      },
     ]
   },
 }
