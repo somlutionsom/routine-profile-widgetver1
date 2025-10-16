@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
-import CryptoJS from 'crypto-js'
+// crypto-js 대신 브라우저 내장 Base64 사용
 import Image from 'next/image'
 import './widget.css'
 
@@ -77,50 +77,30 @@ function WidgetContent() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  // Web Crypto API를 사용한 AES 복호화 함수
-  const decryptConfig = async (encryptedData: string, key: string): Promise<string> => {
-    try {
-      // Base64 디코딩
-      const encryptedBytes = Uint8Array.from(atob(encryptedData), c => c.charCodeAt(0))
-      
-      // 키를 SHA-256으로 해시
-      const keyBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(key))
-      
-      // AES-GCM 복호화
-      const decrypted = await crypto.subtle.decrypt(
-        { name: 'AES-GCM', iv: encryptedBytes.slice(0, 12) },
-        await crypto.subtle.importKey('raw', keyBuffer, { name: 'AES-GCM' }, false, ['decrypt']),
-        encryptedBytes.slice(12)
-      )
-      
-      return new TextDecoder().decode(decrypted)
-    } catch (error) {
-      throw new Error('복호화 실패')
-    }
-  }
-
   useEffect(() => {
-    const encryptedConfig = searchParams.get('config')
-    if (encryptedConfig) {
-      const decryptAndLoad = async () => {
-        try {
-          const decrypted = await decryptConfig(
-            decodeURIComponent(encryptedConfig),
-            process.env.NEXT_PUBLIC_ENCRYPTION_KEY || 'default-key-32-characters-minimum!'
-          )
-          
-          const cfg = JSON.parse(decrypted)
-          setConfig(cfg)
-          setCurrentTheme(cfg.theme || 'pink')
-          fetchData(cfg)
-        } catch (err: any) {
-          console.error('Config decrypt error:', err)
-          setError('설정을 불러올 수 없습니다')
-          setLoading(false)
-        }
+    const encodedConfig = searchParams.get('config')
+    if (encodedConfig) {
+      try {
+        console.log('Encoded config:', encodedConfig);
+        
+        // URL-safe Base64 디코딩 (Buffer 사용 - 더 안전)
+        const base64 = encodedConfig
+          .replace(/-/g, '+')
+          .replace(/_/g, '/');
+        
+        const padding = '='.repeat((4 - (base64.length % 4)) % 4);
+        const decodedString = Buffer.from(base64 + padding, 'base64').toString('utf-8');
+        const cfg = JSON.parse(decodedString);
+        console.log('Decoded data:', cfg);
+        
+        setConfig(cfg)
+        setCurrentTheme(cfg.theme || 'pink')
+        fetchData(cfg)
+      } catch (err: any) {
+        console.error('Config decode error:', err)
+        setError('설정을 불러올 수 없습니다')
+        setLoading(false)
       }
-      
-      decryptAndLoad()
     } else {
       setError('위젯 URL이 올바르지 않습니다')
       setLoading(false)

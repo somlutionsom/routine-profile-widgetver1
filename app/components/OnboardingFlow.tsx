@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import CryptoJS from 'crypto-js'
+// crypto-js 대신 브라우저 내장 Base64 사용
 
 
 interface OnboardingFlowProps {
@@ -27,12 +27,14 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
         isPreview: true
       }
       
-      const encryptedConfig = CryptoJS.AES.encrypt(
-        JSON.stringify(previewConfig),
-        process.env.NEXT_PUBLIC_ENCRYPTION_KEY || 'default-key-32-characters-minimum!'
-      ).toString()
+      // UTF-8 → Base64 (URL-safe)
+      const jsonString = JSON.stringify(previewConfig);
+      const encoder = new TextEncoder();
+      const bytes = encoder.encode(jsonString);
+      let base64 = btoa(String.fromCharCode(...bytes));
+      base64 = base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
       
-      const url = `${window.location.origin}/widget?config=${encodeURIComponent(encryptedConfig)}`
+      const url = `${window.location.origin}/widget?config=${base64}`
       onComplete(url, previewConfig)
     }
   }
@@ -76,12 +78,14 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       theme: 'pink' // 기본 핑크 테마로 고정
     }
     
-    const encryptedConfig = CryptoJS.AES.encrypt(
-      JSON.stringify(config),
-      process.env.NEXT_PUBLIC_ENCRYPTION_KEY || 'default-key-32-characters-minimum!'
-    ).toString()
+    // UTF-8 → Base64 (URL-safe)
+    const jsonString = JSON.stringify(config);
+    const encoder = new TextEncoder();
+    const bytes = encoder.encode(jsonString);
+    let base64 = btoa(String.fromCharCode(...bytes));
+    base64 = base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
     
-    const url = `${window.location.origin}/widget?config=${encodeURIComponent(encryptedConfig)}`
+    const url = `${window.location.origin}/widget?config=${base64}`
     setWidgetUrl(url)
     onComplete(url, config)
     setStep(3)
