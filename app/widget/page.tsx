@@ -77,24 +77,50 @@ function WidgetContent() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
+  // Web Crypto API를 사용한 AES 복호화 함수
+  const decryptConfig = async (encryptedData: string, key: string): Promise<string> => {
+    try {
+      // Base64 디코딩
+      const encryptedBytes = Uint8Array.from(atob(encryptedData), c => c.charCodeAt(0))
+      
+      // 키를 SHA-256으로 해시
+      const keyBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(key))
+      
+      // AES-GCM 복호화
+      const decrypted = await crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv: encryptedBytes.slice(0, 12) },
+        await crypto.subtle.importKey('raw', keyBuffer, { name: 'AES-GCM' }, false, ['decrypt']),
+        encryptedBytes.slice(12)
+      )
+      
+      return new TextDecoder().decode(decrypted)
+    } catch (error) {
+      throw new Error('복호화 실패')
+    }
+  }
+
   useEffect(() => {
     const encryptedConfig = searchParams.get('config')
     if (encryptedConfig) {
-      try {
-        const decrypted = CryptoJS.AES.decrypt(
-          decodeURIComponent(encryptedConfig),
-          process.env.NEXT_PUBLIC_ENCRYPTION_KEY || 'default-key-32-characters-minimum!'
-        ).toString(CryptoJS.enc.Utf8)
-        
-        const cfg = JSON.parse(decrypted)
-        setConfig(cfg)
-        setCurrentTheme(cfg.theme || 'pink')
-        fetchData(cfg)
-      } catch (err: any) {
-        console.error('Config decrypt error:', err)
-        setError('설정을 불러올 수 없습니다')
-        setLoading(false)
+      const decryptAndLoad = async () => {
+        try {
+          const decrypted = await decryptConfig(
+            decodeURIComponent(encryptedConfig),
+            process.env.NEXT_PUBLIC_ENCRYPTION_KEY || 'default-key-32-characters-minimum!'
+          )
+          
+          const cfg = JSON.parse(decrypted)
+          setConfig(cfg)
+          setCurrentTheme(cfg.theme || 'pink')
+          fetchData(cfg)
+        } catch (err: any) {
+          console.error('Config decrypt error:', err)
+          setError('설정을 불러올 수 없습니다')
+          setLoading(false)
+        }
       }
+      
+      decryptAndLoad()
     } else {
       setError('위젯 URL이 올바르지 않습니다')
       setLoading(false)
